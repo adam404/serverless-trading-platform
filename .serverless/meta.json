@@ -1,0 +1,145 @@
+{
+  "/workspaces/serverless-trading-platform": {
+    "versionSfCore": null,
+    "versionFramework": "4.1.21",
+    "isWithinCompose": false,
+    "isCompose": false,
+    "composeOrgName": null,
+    "composeServiceName": null,
+    "servicePath": "/workspaces/serverless-trading-platform",
+    "serviceConfigFileName": "serverless.yml",
+    "service": {
+      "service": "trading-platform",
+      "provider": {
+        "name": "aws",
+        "runtime": "python3.8",
+        "stage": "dev",
+        "region": "us-east-1"
+      },
+      "functions": {
+        "processMarketData": {
+          "handler": "src.handlers.market_data.process",
+          "events": [
+            {
+              "schedule": "rate(5 minutes)"
+            }
+          ]
+        },
+        "executeTradeStrategy": {
+          "handler": "src.handlers.trade.execute",
+          "events": [
+            {
+              "http": {
+                "path": "trade",
+                "method": "post"
+              }
+            }
+          ]
+        },
+        "analyzePerformance": {
+          "handler": "src.handlers.analysis.perform",
+          "events": [
+            {
+              "s3": {
+                "bucket": "trading-data-dev",
+                "event": "s3:ObjectCreated:*"
+              }
+            }
+          ]
+        }
+      },
+      "resources": {
+        "Resources": {
+          "TradingDataBucket": {
+            "Type": "AWS::S3::Bucket",
+            "Properties": {
+              "BucketName": "trading-data-dev"
+            }
+          },
+          "TradingDatabase": {
+            "Type": "AWS::DynamoDB::Table",
+            "Properties": {
+              "TableName": "trading-table-dev",
+              "AttributeDefinitions": [
+                {
+                  "AttributeName": "id",
+                  "AttributeType": "S"
+                }
+              ],
+              "KeySchema": [
+                {
+                  "AttributeName": "id",
+                  "KeyType": "HASH"
+                }
+              ],
+              "BillingMode": "PAY_PER_REQUEST"
+            }
+          }
+        }
+      },
+      "plugins": [
+        "serverless-python-requirements",
+        "serverless-step-functions"
+      ],
+      "stepFunctions": {
+        "stateMachines": {
+          "tradingWorkflow": {
+            "definition": {
+              "StartAt": "FetchMarketData",
+              "States": {
+                "FetchMarketData": {
+                  "Type": "Task",
+                  "Resource": "${self:functions.processMarketData.arn}",
+                  "Next": "ExecuteTradeStrategy"
+                },
+                "ExecuteTradeStrategy": {
+                  "Type": "Task",
+                  "Resource": "${self:functions.executeTradeStrategy.arn}",
+                  "Next": "AnalyzePerformance"
+                },
+                "AnalyzePerformance": {
+                  "Type": "Task",
+                  "Resource": "${self:functions.analyzePerformance.arn}",
+                  "End": true
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "serviceRawFile": "service: trading-platform\n\nprovider:\n  name: aws\n  runtime: python3.8\n  stage: ${opt:stage, 'dev'}\n  region: ${opt:region, 'us-east-1'}\n\nfunctions:\n  processMarketData:\n    handler: src.handlers.market_data.process\n    events:\n      - schedule: rate(5 minutes)\n\n  executeTradeStrategy:\n    handler: src.handlers.trade.execute\n    events:\n      - http:\n          path: trade\n          method: post\n\n  analyzePerformance:\n    handler: src.handlers.analysis.perform\n    events:\n      - s3:\n          bucket: trading-data-${self:provider.stage}\n          event: s3:ObjectCreated:*\n\nresources:\n  Resources:\n    TradingDataBucket:\n      Type: AWS::S3::Bucket\n      Properties:\n        BucketName: trading-data-${self:provider.stage}\n\n    TradingDatabase:\n      Type: AWS::DynamoDB::Table\n      Properties:\n        TableName: trading-table-${self:provider.stage}\n        AttributeDefinitions:\n          - AttributeName: id\n            AttributeType: S\n        KeySchema:\n          - AttributeName: id\n            KeyType: HASH\n        BillingMode: PAY_PER_REQUEST\n\nplugins:\n  - serverless-python-requirements\n  - serverless-step-functions\n\nstepFunctions:\n  stateMachines:\n    tradingWorkflow:\n      definition:\n        StartAt: FetchMarketData\n        States:\n          FetchMarketData:\n            Type: Task\n            Resource: ${self:functions.processMarketData.arn}\n            Next: ExecuteTradeStrategy\n          ExecuteTradeStrategy:\n            Type: Task\n            Resource: ${self:functions.executeTradeStrategy.arn}\n            Next: AnalyzePerformance\n          AnalyzePerformance:\n            Type: Task\n            Resource: ${self:functions.analyzePerformance.arn}\n            End: true",
+    "command": [
+      "deploy"
+    ],
+    "options": {},
+    "error": {
+      "message": "Failed to resolve variable 'functions.processMarketData.arn' with resolver 'config' and provider 'self': Error: Key \"functions.processMarketData.arn\" is not defined in config file",
+      "stack": "Error: Failed to resolve variable 'functions.processMarketData.arn' with resolver 'config' and provider 'self': Error: Key \"functions.processMarketData.arn\" is not defined in config file\n    at #resolveKey (file:///root/.serverless/releases/4.1.21/package/dist/sf-core.js:958:43321)\n    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)\n    at async _ResolverManager.resolve (file:///root/.serverless/releases/4.1.21/package/dist/sf-core.js:958:48156)\n    at async #handlePlaceholderNode (file:///root/.serverless/releases/4.1.21/package/dist/sf-core.js:958:47080)\n    at async file:///root/.serverless/releases/4.1.21/package/dist/sf-core.js:958:45215\n    at async processNodeAndHandleCompletion (file:///root/.serverless/releases/4.1.21/package/dist/sf-core.js:958:38814)",
+      "code": "RESOLVER_RESOLVE_VARIABLE_ERROR"
+    },
+    "machineId": "3c2267ba1de51c132687859c7378f28b",
+    "accessKeyV2": "<REDACTED>",
+    "accessKeyV1": "<REDACTED>",
+    "orgId": "c1aee79b-3588-4cc1-a20d-f7b2d6174ebf",
+    "orgName": "adamscott",
+    "userId": "9Z7p04yLH6fSZK70xh",
+    "dashboard": {
+      "isEnabledForService": false,
+      "requiredAuthentication": true,
+      "orgFeaturesInUse": null,
+      "orgObservabilityIntegrations": null,
+      "serviceAppId": null,
+      "serviceProvider": null,
+      "instanceParameters": null
+    },
+    "userName": "adamscott",
+    "subscription": null,
+    "userEmail": "adam404@gmail.com",
+    "serviceProviderAwsCfStackId": null,
+    "serviceProviderAwsCfStackCreated": null,
+    "serviceProviderAwsCfStackUpdated": null,
+    "serviceProviderAwsCfStackStatus": null,
+    "serviceProviderAwsCfStackOutputs": null
+  }
+}
