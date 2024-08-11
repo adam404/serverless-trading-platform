@@ -34,9 +34,8 @@ resources:
   Resources:
     TradingDataBucket:
       Type: AWS::S3::Bucket
-      DeletionPolicy: Retain
       Properties:
-        BucketName: trading-data-${self:provider.stage}
+        BucketName: trading-data-${self:service}-${self:provider.stage}-${aws:accountId}
 
     TradingDatabase:
       Type: AWS::DynamoDB::Table

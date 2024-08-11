@@ -1,6 +1,6 @@
 import json
-from src.common.utils import get_table, response
-from src.models.trade_models import Trade
+from lib.utils import get_table, create_response
+from lib.models import Trade
 
 def execute(event, context):
     """
@@ -14,6 +14,6 @@ def execute(event, context):
         # For this example, we'll just store the trade in DynamoDB
         table.put_item(Item=trade.to_dict())
         
-        return response(200, 'Trade executed successfully')
+        return create_response(200, 'Trade executed successfully')
     except Exception as e:
-        return response(500, f'Error executing trade: {str(e)}')
+        return create_response(500, f'Error executing trade: {str(e)}')

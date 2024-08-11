@@ -3,5 +3,12 @@
 	"features": {
 		"ghcr.io/devcontainers-contrib/features/serverless:2": {},
 		"ghcr.io/devcontainers/features/aws-cli:1": {}
+	},
+	"customizations": {
+		"vscode": {
+			"extensions": [
+				"ms-python.python"
+			]
+		}
 	}
 }
