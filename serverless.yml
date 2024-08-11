@@ -1,3 +1,7 @@
+# "org" ensures this Service is used with the correct Serverless Framework Access Key.
+org: adamscott
+# "app" enables Serverless Framework Dashboard features and sharing them with other Services.
+app: trading-platform
 service: trading-platform
 
 provider:
@@ -30,6 +34,7 @@ resources:
   Resources:
     TradingDataBucket:
       Type: AWS::S3::Bucket
+      DeletionPolicy: Retain
       Properties:
         BucketName: trading-data-${self:provider.stage}
 
@@ -57,13 +62,16 @@ stepFunctions:
         States:
           FetchMarketData:
             Type: Task
-            Resource: ${self:functions.processMarketData.arn}
+            Resource:
+              Fn::GetAtt: [ProcessMarketDataLambdaFunction, Arn]
             Next: ExecuteTradeStrategy
           ExecuteTradeStrategy:
             Type: Task
-            Resource: ${self:functions.executeTradeStrategy.arn}
+            Resource:
+              Fn::GetAtt: [ExecuteTradeStrategyLambdaFunction, Arn]
             Next: AnalyzePerformance
           AnalyzePerformance:
             Type: Task
-            Resource: ${self:functions.analyzePerformance.arn}
+            Resource:
+              Fn::GetAtt: [AnalyzePerformanceLambdaFunction, Arn]
             End: true
