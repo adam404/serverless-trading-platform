@@ -18,11 +18,17 @@ def decimal_default(obj):
         return float(obj)
     raise TypeError
 
-def create_response(status_code, body):
+def create_response(status_code: int, message: str, body: dict = None) -> dict:
     """
-    Create a standardized response object.
+    Create a standardized API response.
+    
+    :param status_code: HTTP status code
+    :param message: Response message
+    :param body: Optional response body
+    :return: Formatted response dictionary
     """
-    return {
+    response = {
         'statusCode': status_code,
-        'body': json.dumps(body, default=decimal_default)
+        'body': json.dumps({'message': message, 'data': body} if body else {'message': message})
     }
+    return response

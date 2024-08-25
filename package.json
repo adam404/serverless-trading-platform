@@ -7,5 +7,20 @@
   },
   "scripts": {
     "start": "serverless offline start"
+  },
+  "custom": {
+    "pythonRequirements": {
+      "dockerizePip": "non-linux",
+      "zip": true,
+      "slim": true,
+      "noDeploy": [
+        "docutils",
+        "pip",
+        "setuptools",
+        "wheel"
+      ],
+      "useDownloadCache": true,
+      "useStaticCache": true
+    }
   }
 }

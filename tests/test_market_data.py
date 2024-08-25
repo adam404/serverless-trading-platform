@@ -1,10 +1,7 @@
-import pytest
-from src.handlers.market_data import process
-from src.models.trade_models import MarketData
-from decimal import Decimal
-from datetime import datetime
 import json
-from unittest.mock import patch, MagicMock
+import pytest
+from src.handlers.market_data import process, YFinanceProvider
+from unittest.mock import Mock
 
 @pytest.fixture
 def mock_dynamodb_table(mocker):
@@ -12,11 +9,24 @@ def mock_dynamodb_table(mocker):
     mocker.patch('src.handlers.market_data.get_table', return_value=mock_table)
     return mock_table
 
-def test_process_valid_market_data(mock_dynamodb_table):
+@pytest.fixture
+def mock_yfinance_provider(mocker):
+    mock_provider = Mock(spec=YFinanceProvider)
+    mock_provider.get_stock_data.return_value = {
+        'symbol': 'AAPL',
+        'current_price': 150.00,
+        'change_percent': 1.5,
+        'high': 155.00,
+        'low': 145.00,
+        'volume': 1000000
+    }
+    mocker.patch('src.handlers.market_data.get_provider', return_value=mock_provider)
+    return mock_provider
+
+def test_process_valid_market_data(mock_dynamodb_table, mock_yfinance_provider):
     event = {
         'body': json.dumps({
             'symbol': 'AAPL',
-            'price': '150.00',
             'timestamp': '2023-08-10T12:00:00Z'
         })
     }
@@ -28,19 +38,6 @@ def test_process_valid_market_data(mock_dynamodb_table):
     assert 'Market data processed successfully' in result['body']
     mock_dynamodb_table.put_item.assert_called_once()
 
-def test_process_invalid_market_data():
-    event = {
-        'body': json.dumps({
-            'symbol': 'AAPL'  # Missing required fields
-        })
-    }
-    context = type('obj', (object,), {'function_name': 'processMarketData-dev'})
-
-    result = process(event, context)
-
-    assert result['statusCode'] == 500
-    assert 'Error processing market data' in result['body']
-
 def test_process_invalid_json():
     event = {
         'body': 'Invalid JSON'
@@ -49,8 +46,8 @@ def test_process_invalid_json():
 
     result = process(event, context)
 
-    assert result['statusCode'] == 500
-    assert 'Error processing market data' in result['body']
+    assert result['statusCode'] == 400  # Changed from 500 to 400
+    assert 'Invalid JSON in request body' in result['body']
 
 def test_process_empty_event():
     event = {}
@@ -58,15 +55,29 @@ def test_process_empty_event():
 
     result = process(event, context)
 
-    assert result['statusCode'] == 500
-    assert 'Error processing market data' in result['body']
+    assert result['statusCode'] == 400  # Changed from 500 to 400
+    assert 'Symbol is required' in result['body']
 
-def test_process_database_error(mocker):
-    mocker.patch('src.handlers.market_data.get_table', side_effect=Exception('Database error'))
+def test_process_provider_error(mock_yfinance_provider):
+    mock_yfinance_provider.get_stock_data.side_effect = ValueError("API error")
     event = {
         'body': json.dumps({
             'symbol': 'AAPL',
-            'price': '150.00',
+            'timestamp': '2023-08-10T12:00:00Z'
+        })
+    }
+    context = type('obj', (object,), {'function_name': 'processMarketData-dev'})
+
+    result = process(event, context)
+
+    assert result['statusCode'] == 400
+    assert 'API error' in result['body']
+
+def test_process_database_error(mock_dynamodb_table, mock_yfinance_provider):
+    mock_dynamodb_table.put_item.side_effect = Exception("Database error")
+    event = {
+        'body': json.dumps({
+            'symbol': 'AAPL',
             'timestamp': '2023-08-10T12:00:00Z'
         })
     }
