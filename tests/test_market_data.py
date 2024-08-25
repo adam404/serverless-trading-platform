@@ -40,3 +40,39 @@ def test_process_invalid_market_data():
 
     assert result['statusCode'] == 500
     assert 'Error processing market data' in result['body']
+
+def test_process_invalid_json():
+    event = {
+        'body': 'Invalid JSON'
+    }
+    context = type('obj', (object,), {'function_name': 'processMarketData-dev'})
+
+    result = process(event, context)
+
+    assert result['statusCode'] == 500
+    assert 'Error processing market data' in result['body']
+
+def test_process_empty_event():
+    event = {}
+    context = type('obj', (object,), {'function_name': 'processMarketData-dev'})
+
+    result = process(event, context)
+
+    assert result['statusCode'] == 500
+    assert 'Error processing market data' in result['body']
+
+def test_process_database_error(mocker):
+    mocker.patch('src.handlers.market_data.get_table', side_effect=Exception('Database error'))
+    event = {
+        'body': json.dumps({
+            'symbol': 'AAPL',
+            'price': '150.00',
+            'timestamp': '2023-08-10T12:00:00Z'
+        })
+    }
+    context = type('obj', (object,), {'function_name': 'processMarketData-dev'})
+
+    result = process(event, context)
+
+    assert result['statusCode'] == 500
+    assert 'Error processing market data' in result['body']
