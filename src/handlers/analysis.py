@@ -1,4 +1,4 @@
-from src.common.utils import get_table, response
+from src.utils.helpers import get_table, create_response
 from src.models.trade_models import PerformanceMetrics
 
 def perform(event, context):
@@ -18,6 +18,6 @@ def perform(event, context):
         
         table.put_item(Item=metrics.to_dict())
         
-        return response(200, 'Analysis performed successfully')
+        return create_response(200, 'Analysis performed successfully')
     except Exception as e:
-        return response(500, f'Error performing analysis: {str(e)}')
+        return create_response(500, f'Error performing analysis: {str(e)}')

@@ -1,8 +1,9 @@
 import json
-from lib.utils import get_table, create_response
-from lib.models import MarketData
+from typing import Dict, Any
+from src.utils.helpers import get_table, create_response
+from src.models import MarketData
 
-def process(event, context):
+def process(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     """
     Process incoming market data and store in DynamoDB.
     """

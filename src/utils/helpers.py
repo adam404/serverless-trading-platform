@@ -18,7 +18,7 @@ def decimal_default(obj):
         return float(obj)
     raise TypeError
 
-def response(status_code, body):
+def create_response(status_code, body):
     """
     Create a standardized response object.
     """

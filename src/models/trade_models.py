@@ -2,6 +2,7 @@ from decimal import Decimal
 from datetime import datetime
 from dataclasses import dataclass, asdict
 
+
 @dataclass
 class MarketData:
     symbol: str
@@ -33,3 +34,4 @@ class PerformanceMetrics:
     def to_dict(self):
         return {k: str(v) if isinstance(v, Decimal) else v 
                 for k, v in asdict(self).items()}
+    

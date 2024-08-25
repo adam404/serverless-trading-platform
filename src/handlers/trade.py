@@ -1,6 +1,6 @@
 import json
-from lib.utils import get_table, create_response
-from lib.models import Trade
+from src.utils.helpers import get_table, create_response
+from src.models import Trade
 
 def execute(event, context):
     """
