@@ -1,6 +1,11 @@
 {
   "devDependencies": {
-    "serverless-python-requirements": "^6.1.0",
+    "serverless": "^3.39.0",
+    "serverless-offline": "^13.7.0",
+    "serverless-python-requirements": "^6.1.1",
     "serverless-step-functions": "^3.21.0"
+  },
+  "scripts": {
+    "start": "serverless offline start"
   }
 }

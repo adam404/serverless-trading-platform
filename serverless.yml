@@ -1,5 +1,5 @@
 # "org" ensures this Service is used with the correct Serverless Framework Access Key.
-org: adamscott
+org: serverlesstradingplatform
 # "app" enables Serverless Framework Dashboard features and sharing them with other Services.
 app: trading-platform
 service: trading-platform
@@ -9,6 +9,8 @@ provider:
   runtime: python3.8
   stage: ${opt:stage, 'dev'}
   region: ${opt:region, 'us-east-1'}
+  environment:
+    DYNAMODB_ENDPOINT: http://localhost:8000
 
 functions:
   processMarketData:
@@ -27,7 +29,7 @@ functions:
     handler: src.handlers.analysis.perform
     events:
       - s3:
-          bucket: trading-data-${self:provider.stage}
+          bucket: trading-data-${self:service}-${self:provider.stage}-${aws:accountId}
           event: s3:ObjectCreated:*
 
 resources:
@@ -52,6 +54,18 @@ resources:
 plugins:
   - serverless-python-requirements
   - serverless-step-functions
+  - serverless-offline
+  - serverless-dynamodb-local
+  - serverless-step-functions-offline
+
+custom:
+  dynamodb:
+    stages:
+      - dev
+    start:
+      port: 8000
+      inMemory: true
+      migrate: true
 
 stepFunctions:
   stateMachines:
