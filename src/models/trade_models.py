@@ -7,7 +7,7 @@ from dataclasses import dataclass, asdict
 class MarketData:
     symbol: str
     price: Decimal
-    timestamp: datetime
+    timestamp: str
 
     def to_dict(self):
         return {k: str(v) if isinstance(v, (datetime, Decimal)) else v 

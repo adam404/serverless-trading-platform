@@ -1,5 +1,5 @@
 from .market_data_provider import MarketDataProvider
-from .yfinance_provider import YFinanceProvider
+from .yt_finance_provider import YFinanceProvider
 
 def get_provider(provider_name: str) -> MarketDataProvider:
     providers = {

@@ -1,12 +1,20 @@
 {
   "devDependencies": {
+    "debug": "^4.3.7",
+    "flat": "^6.0.1",
+    "minimatch": "^10.0.1",
+    "mocha": "^10.7.3",
     "serverless": "^3.39.0",
-    "serverless-offline": "^13.7.0",
+    "serverless-dynamodb-local": "^0.2.40",
+    "serverless-offline": "^13.8.0",
     "serverless-python-requirements": "^6.1.1",
-    "serverless-step-functions": "^3.21.0"
+    "serverless-step-functions": "^3.21.0",
+    "tar": "^7.4.3"
   },
   "scripts": {
-    "start": "serverless offline start"
+    "build": "npm run test && serverless pacakge",
+    "start": "serverless offline start",
+    "test": "pytest --cov=src --cov-report=term-missing"
   },
   "custom": {
     "pythonRequirements": {
